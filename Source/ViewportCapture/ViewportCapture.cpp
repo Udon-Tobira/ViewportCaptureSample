@@ -17,6 +17,7 @@ DEFINE_LOG_CATEGORY_STATIC(LogViewportCapture, Display, All);
 
 void UViewportCapture::StartCapturing() {
 	check(GEngine);
+	check(RenderTextureTarget != nullptr);
 
 	// insert Capture_RenderThread function after rendering without UI
 	GEngine->GetPostRenderDelegateEx().AddUObject(
@@ -26,6 +27,8 @@ void UViewportCapture::StartCapturing() {
 void UViewportCapture::Capture_RenderThread(FRDGBuilder& RDGBuilder) {
 	ensure(IsInRenderingThread());
 	check(RenderTextureTarget != nullptr);
+	GEngine->GameViewport->GetGameViewport()->GetRenderTargetTexture();
+	FTexture2DRHIRef ref;
 
 	AddPass(
 	    RDGBuilder, RDG_EVENT_NAME(__FUNCTION__),
@@ -37,12 +40,11 @@ void UViewportCapture::Capture_RenderThread(FRDGBuilder& RDGBuilder) {
 
 		    const FIntPoint TargetSize(RenderTextureTarget->SizeX,
 		                               RenderTextureTarget->SizeY);
-		    FRHITexture*    DestRenderTarget =
+		    FRHITexture*    DestRHITexture =
 		        RenderTextureTarget->GetRenderTargetResource()->GetTextureRHI();
 
-		    FRHIRenderPassInfo DestRPInfo(DestRenderTarget,
-		                                  ERenderTargetActions::Load_Store,
-		                                  DestRenderTarget);
+		    FRHIRenderPassInfo DestRPInfo(
+		        DestRHITexture, ERenderTargetActions::Load_Store, DestRHITexture);
 		    RHICmdList.BeginRenderPass(DestRPInfo,
 		                               TEXT("FrameCaptureResolveRenderTarget"));
 		    {
@@ -75,27 +77,29 @@ void UViewportCapture::Capture_RenderThread(FRDGBuilder& RDGBuilder) {
 			    SetGraphicsPipelineState(RHICmdList, GraphicsPSOInit);
 
 #if 0
-					const bool bIsSourceBackBufferSameAsWindowSize = SceneTexture->GetSizeX() == WindowSize.X && SceneTexture->GetSizeY() == WindowSize.Y;
-					const bool bIsSourceBackBufferSameAsTargetSize = TargetSize.X == SceneTexture->GetSizeX() && TargetSize.Y == SceneTexture->GetSizeY();
+					const bool bIsSourceBackBufferSameAsWindowSize = SrcRHISceneTexture->GetSizeX() == WindowSize.X && SrcRHISceneTexture->GetSizeY() == WindowSize.Y;
+					const bool bIsSourceBackBufferSameAsTargetSize = TargetSize.X == SrcRHISceneTexture->GetSizeX() && TargetSize.Y == SrcRHISceneTexture->GetSizeY();
 
 					if (bIsSourceBackBufferSameAsWindowSize || bIsSourceBackBufferSameAsTargetSize)
 					{
-						PixelShader->SetParameters(RHICmdList, TStaticSamplerState<SF_Point>::GetRHI(), SceneTexture);
+						PixelShader->SetParameters(RHICmdList, TStaticSamplerState<SF_Point>::GetRHI(), SrcRHISceneTexture);
 					}
 					else
 					{
-						PixelShader->SetParameters(RHICmdList, TStaticSamplerState<SF_Bilinear>::GetRHI(), SceneTexture);
+						PixelShader->SetParameters(RHICmdList, TStaticSamplerState<SF_Bilinear>::GetRHI(), SrcRHISceneTexture);
 					}
 #else
 			    // Widnow SizeŽæ‚Á‚Ä‚È‚¢‚Ì‚ÅBilinear‘O’ñ‚Å
-			    FRHITexture* SceneTexture = GEngine->GameViewport->GetGameViewport()
-			                                    ->GetRenderTargetTexture();
-			    check(SceneTexture);
+			    FRHITexture* SrcRHISceneTexture =
+			        GEngine->GameViewport->GetGameViewport()
+			            ->GetRenderTargetTexture();
+
+			    check(SrcRHISceneTexture);
 			    FRHIBatchedShaderParameters& BatchedParameters =
 			        RHICmdList.GetScratchShaderParameters();
 			    PixelShader->SetParameters(BatchedParameters,
 			                               TStaticSamplerState<SF_Bilinear>::GetRHI(),
-			                               SceneTexture);
+			                               SrcRHISceneTexture);
 			    RHICmdList.SetBatchedShaderParameters(
 			        RHICmdList.GetBoundPixelShader(), BatchedParameters);
 #endif
@@ -107,8 +111,8 @@ void UViewportCapture::Capture_RenderThread(FRDGBuilder& RDGBuilder) {
 			        0, 0,                           // Source X, Y
 			        ViewRectSize.X, ViewRectSize.Y, // Source W, H
 			        TargetSize,                     // Dest buffer size
-			        FIntPoint(SceneTexture->GetSizeX(),
-			                  SceneTexture->GetSizeY()), // Source texture size
+			        FIntPoint(SrcRHISceneTexture->GetSizeX(),
+			                  SrcRHISceneTexture->GetSizeY()), // Source texture size
 			        VertexShader, EDRF_Default);
 		    }
 		    RHICmdList.EndRenderPass();
