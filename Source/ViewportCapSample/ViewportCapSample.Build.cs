@@ -2,13 +2,13 @@
 
 using UnrealBuildTool;
 
-public class ViewportCapture : ModuleRules
+public class ViewportCapSample : ModuleRules
 {
-    public ViewportCapture(ReadOnlyTargetRules Target) : base(Target)
+    public ViewportCapSample(ReadOnlyTargetRules Target) : base(Target)
     {
         PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 
-        PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "EnhancedInput", "Renderer", "RenderCore", "RHI" });
+        PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "EnhancedInput" });
 
         PrivateDependencyModuleNames.AddRange(new string[] { });
 

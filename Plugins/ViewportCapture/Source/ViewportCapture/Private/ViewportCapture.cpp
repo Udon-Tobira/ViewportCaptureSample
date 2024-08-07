@@ -11,8 +11,8 @@
 #include "ScreenRendering.h"
 #include "Slate/SceneViewport.h"
 
-IMPLEMENT_PRIMARY_GAME_MODULE(FDefaultGameModuleImpl, ViewportCapture,
-                              "ViewportCapture");
+// IMPLEMENT_PRIMARY_GAME_MODULE(FDefaultGameModuleImpl, ViewportCapture,
+//                               "ViewportCapture");
 DEFINE_LOG_CATEGORY_STATIC(LogViewportCapture, Display, All);
 
 void UViewportCapture::StartCapturing() {
@@ -105,7 +105,7 @@ void UViewportCapture::Capture_RenderThread(FRDGBuilder& RDGBuilder) {
 						PixelShader->SetParameters(RHICmdList, TStaticSamplerState<SF_Bilinear>::GetRHI(), SrcRHISceneTexture);
 					}
 #else
-			    // Widnow SizeŽæ‚Á‚Ä‚È‚¢‚Ì‚ÅBilinear‘O’ñ‚Å
+			    // Widnow Sizeï¿½ï¿½ï¿½ï¿½Ä‚È‚ï¿½ï¿½Ì‚ï¿½Bilinearï¿½Oï¿½ï¿½ï¿½
 			    FRHITexture* SrcRHISceneTexture =
 			        GEngine->GameViewport->GetGameViewport()
 			            ->GetRenderTargetTexture();
