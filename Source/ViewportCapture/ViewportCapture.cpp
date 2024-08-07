@@ -52,7 +52,8 @@ void UViewportCapture::Capture_RenderThread(FRDGBuilder& RDGBuilder) {
 
 			    FGraphicsPipelineStateInitializer GraphicsPSOInit;
 			    RHICmdList.ApplyCachedRenderTargets(GraphicsPSOInit);
-			    GraphicsPSOInit.BlendState      = TStaticBlendState<>::GetRHI();
+			    GraphicsPSOInit.BlendState =
+			        TStaticBlendState<CW_RGB>::GetRHI(); // disable alpha value
 			    GraphicsPSOInit.RasterizerState = TStaticRasterizerState<>::GetRHI();
 			    GraphicsPSOInit.DepthStencilState =
 			        TStaticDepthStencilState<false, CF_Always>::GetRHI();
