@@ -16,12 +16,27 @@ IMPLEMENT_PRIMARY_GAME_MODULE(FDefaultGameModuleImpl, ViewportCapture,
 DEFINE_LOG_CATEGORY_STATIC(LogViewportCapture, Display, All);
 
 void UViewportCapture::StartCapturing() {
-	check(GEngine);
-	check(RenderTextureTarget != nullptr);
+	// if callback is not bound
+	if (!PostRenderDelegateExHandle.IsValid()) {
+		check(GEngine);
+		check(RenderTextureTarget != nullptr);
 
-	// insert Capture_RenderThread function after rendering without UI
-	GEngine->GetPostRenderDelegateEx().AddUObject(
-	    this, &ThisClass::Capture_RenderThread);
+		// insert Capture_RenderThread function after rendering without UI
+		PostRenderDelegateExHandle = GEngine->GetPostRenderDelegateEx().AddUObject(
+		    this, &ThisClass::Capture_RenderThread);
+	}
+}
+
+void UViewportCapture::StopCapturing() {
+	// remove callback
+	GEngine->GetPostRenderDelegateEx().Remove(PostRenderDelegateExHandle);
+
+	// invalidate callback handle
+	PostRenderDelegateExHandle.Reset();
+}
+
+UViewportCapture::~UViewportCapture() {
+	StopCapturing();
 }
 
 void UViewportCapture::Capture_RenderThread(FRDGBuilder& RDGBuilder) {
