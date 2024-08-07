@@ -1,3 +1,6 @@
 [submodule "Plugins/ViewportCapturePlugin"]
 	path = Plugins/ViewportCapturePlugin
 	url = https://github.com/Udon-Tobira/ViewportCapturePlugin.git
+[submodule "Plugins/ExecuteSystemCommandPlugin"]
+	path = Plugins/ExecuteSystemCommandPlugin
+	url = https://github.com/Udon-Tobira/ExecuteSystemCommandPlugin.git
